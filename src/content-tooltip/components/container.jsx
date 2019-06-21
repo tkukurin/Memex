@@ -2,6 +2,13 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import OnClickOutside from 'react-onclickoutside'
 
+import { STAGES } from 'src/overview/onboarding/constants'
+import { remoteFunction } from 'src/util/webextensionRPC'
+import {
+    highlightAnnotations,
+    removeHighlights,
+} from 'src/sidebar-overlay/content_script/highlight-interactions'
+import { toggleSidebarOverlay } from 'src/direct-linking/content_script/interactions'
 import Tooltip from './tooltip'
 import {
     InitialComponent,
@@ -10,28 +17,13 @@ import {
     ErrorComponent,
     DoneComponent,
 } from './tooltip-states'
-
 import { conditionallyRemoveSelectOption } from '../onboarding-interactions'
-import { STAGES } from 'src/overview/onboarding/constants'
-import { userSelectedText } from '../interactions'
-import * as Mousetrap from 'mousetrap'
-import { remoteFunction } from 'src/util/webextensionRPC'
-import {
-    highlightAnnotations,
-    removeHighlights,
-} from '../../sidebar-overlay/content_script/highlight-interactions'
-import {
-    getKeyboardShortcutsState,
-    convertKeyboardEventToKeyString,
-} from '../utils'
-import { toggleSidebarOverlay } from 'src/direct-linking/content_script/interactions'
 
 class TooltipContainer extends React.Component {
     static propTypes = {
         onInit: PropTypes.func.isRequired,
         createAndCopyDirectLink: PropTypes.func.isRequired,
         createAnnotation: PropTypes.func.isRequired,
-        createHighlight: PropTypes.func.isRequired,
         openSettings: PropTypes.func.isRequired,
         destroy: PropTypes.func.isRequired,
     }
@@ -43,92 +35,8 @@ class TooltipContainer extends React.Component {
         highlightsOn: false,
     }
 
-    async componentDidMount() {
+    componentDidMount() {
         this.props.onInit(this.showTooltip)
-
-        const {
-            shortcutsEnabled,
-            ...shortcuts
-        } = await getKeyboardShortcutsState()
-
-        if (shortcutsEnabled) {
-            Mousetrap.bind(
-                Object.values(shortcuts).map(val => val.shortcut),
-                this.initHandleKeyboardShortcuts(shortcuts),
-            )
-        }
-    }
-
-    initHandleKeyboardShortcuts = ({
-        addComment,
-        addTag,
-        addToCollection,
-        createAnnotation,
-        createBookmark,
-        highlight,
-        link,
-        toggleHighlights,
-        toggleSidebar,
-    }) => async e => {
-        if (!userSelectedText()) {
-            switch (convertKeyboardEventToKeyString(e)) {
-                case toggleSidebar.shortcut:
-                    toggleSidebar.enabled &&
-                        toggleSidebarOverlay({
-                            override: true,
-                            openSidebar: true,
-                        })
-                    break
-                case toggleHighlights.shortcut:
-                    toggleHighlights.enabled && this.toggleHighlightsAct()
-                    break
-                case addTag.shortcut:
-                    addTag.enabled &&
-                        toggleSidebarOverlay({
-                            override: true,
-                            openToTags: true,
-                        })
-                    break
-                case addToCollection.shortcut:
-                    addToCollection.enabled &&
-                        toggleSidebarOverlay({
-                            override: true,
-                            openToCollections: true,
-                        })
-                    break
-                case addComment.shortcut:
-                    addComment.enabled &&
-                        toggleSidebarOverlay({
-                            override: true,
-                            openToComment: true,
-                        })
-                    break
-                case createBookmark.shortcut:
-                    createBookmark.enabled &&
-                        toggleSidebarOverlay({
-                            override: true,
-                            openToBookmark: true,
-                        })
-                    break
-                default:
-            }
-        } else {
-            switch (convertKeyboardEventToKeyString(e)) {
-                case link.shortcut:
-                    link.enabled && (await this.createLink())
-                    break
-                case highlight.shortcut:
-                    if (highlight.enabled) {
-                        await this.props.createHighlight()
-                        this.toggleHighlightsAct()
-                    }
-                    break
-                case createAnnotation.shortcut:
-                    createAnnotation.enabled && (await this.createAnnotation(e))
-                    break
-                default:
-            }
-        }
     }
 
     fetchAndHighlightAnnotations = async () => {
