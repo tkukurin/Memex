@@ -15,7 +15,7 @@ export default class ToolbarNotifications {
         })
     }
 
-    async showToolbarNotification(type: string, extraProps: any) {
+    async showToolbarNotification(type: string, extraProps = {}) {
         await bodyLoader()
         if (this._rootElement) {
             // We're already showing a notification, close it

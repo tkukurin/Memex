@@ -4,11 +4,11 @@ import { delayed, getPositionState, getTooltipState } from './utils'
 import {
     createAndCopyDirectLink,
     createAnnotation,
-} from '../direct-linking/content_script/interactions'
-import { setupUIContainer, destroyUIContainer } from './components'
-import { remoteFunction, makeRemotelyCallable } from '../util/webextensionRPC'
-import { injectCSS } from '../search-injection/dom'
+} from 'src/direct-linking/content_script/interactions'
+import { remoteFunction, makeRemotelyCallable } from 'src/util/webextensionRPC'
+import ToolbarNotifications from 'src/toolbar-notification/content_script'
 import { conditionallyShowHighlightNotification } from './onboarding-interactions'
+import { setupUIContainer, destroyUIContainer } from './components'
 
 const openOptionsRPC = remoteFunction('openOptionsTab')
 let mouseupListener = null
@@ -55,7 +55,13 @@ let manualOverride = false
  * Mounts Tooltip React component.
  * Sets up Container <---> webpage Remote functions.
  */
-export const insertTooltip = async ({ toolbarNotifications }) => {
+export async function insertTooltip({
+    toolbarNotifications,
+    loadStyles,
+}: {
+    toolbarNotifications: ToolbarNotifications
+    loadStyles: () => void
+}) {
     // If target is set, Tooltip has already been injected.
     if (target) {
         return
@@ -65,8 +71,7 @@ export const insertTooltip = async ({ toolbarNotifications }) => {
     target.setAttribute('id', 'memex-direct-linking-tooltip')
     document.body.appendChild(target)
 
-    const cssFile = browser.extension.getURL('/content_script.css')
-    injectCSS(cssFile)
+    loadStyles()
 
     showTooltip = await setupUIContainer(target, {
         createAndCopyDirectLink,
@@ -107,7 +112,7 @@ export const removeTooltip = () => {
  * Should either be called through the RPC, or pass the `toolbarNotifications`
  * wrapped in an object.
  */
-const insertOrRemoveTooltip = async ({ toolbarNotifications }) => {
+const insertOrRemoveTooltip = async ({ toolbarNotifications, loadStyles }) => {
     if (manualOverride) {
         return
     }
@@ -116,7 +121,7 @@ const insertOrRemoveTooltip = async ({ toolbarNotifications }) => {
     const isTooltipPresent = !!target
 
     if (isTooltipEnabled && !isTooltipPresent) {
-        insertTooltip({ toolbarNotifications })
+        insertTooltip({ toolbarNotifications, loadStyles })
     } else if (!isTooltipEnabled && isTooltipPresent) {
         removeTooltip()
     }
@@ -125,27 +130,33 @@ const insertOrRemoveTooltip = async ({ toolbarNotifications }) => {
 /**
  * Sets up RPC functions to insert and remove Tooltip from Popup.
  */
-export const setupRPC = ({ toolbarNotifications }) => {
+export async function setupRPC({
+    toolbarNotifications,
+    loadStyles,
+}: {
+    toolbarNotifications: ToolbarNotifications
+    loadStyles: () => void
+}) {
     makeRemotelyCallable({
         showContentTooltip: async () => {
             if (!showTooltip) {
-                await insertTooltip({ toolbarNotifications })
+                await insertTooltip({ toolbarNotifications, loadStyles })
             }
             if (userSelectedText()) {
-                const position = calculateTooltipPostion()
+                const position = calculateTooltipPosition()
                 showTooltip(position)
             }
         },
         insertTooltip: ({ override } = {}) => {
             manualOverride = !!override
-            insertTooltip({ toolbarNotifications })
+            insertTooltip({ toolbarNotifications, loadStyles })
         },
         removeTooltip: ({ override } = {}) => {
             manualOverride = !!override
             removeTooltip()
         },
         insertOrRemoveTooltip: async () => {
-            await insertOrRemoveTooltip({ toolbarNotifications })
+            await insertOrRemoveTooltip({ toolbarNotifications, loadStyles })
         },
     })
 }
@@ -173,7 +184,7 @@ export const conditionallyTriggerTooltip = delayed(
         const positioning = await getPositionState()
         let position
         if (positioning === 'text' || !event) {
-            position = calculateTooltipPostion()
+            position = calculateTooltipPosition()
         } else if (positioning === 'mouse' && event) {
             position = { x: event.pageX, y: event.pageY }
         }
@@ -187,7 +198,7 @@ export const conditionallyTriggerTooltip = delayed(
     300,
 )
 
-export function calculateTooltipPostion() {
+export function calculateTooltipPosition() {
     const range = document.getSelection().getRangeAt(0)
     const boundingRect = range.getBoundingClientRect()
     // x = position of element from the left + half of it's width
@@ -223,9 +234,7 @@ export function userSelectedText() {
     const container = selection.getRangeAt(0).commonAncestorContainer
     const extras = isAnchorOrContentEditable(container)
 
-    const userSelectedText =
-        !!selection && !selection.isCollapsed && !!selectedString && !extras
-    return userSelectedText
+    return !!selection && !selection.isCollapsed && !!selectedString && !extras
 }
 
 function isTargetInsideTooltip(event) {

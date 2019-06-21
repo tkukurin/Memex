@@ -10,6 +10,7 @@ import { removeHighlights } from './highlight-interactions'
 import AnnotationsManager from 'src/sidebar-overlay/annotations-manager'
 import ToolbarNotifications from 'src/toolbar-notification/content_script'
 import { insertTooltip, removeTooltip } from 'src/content-tooltip/interactions'
+import { loadStyles } from 'src/content-tooltip'
 
 let target = null /* Target container for the Ribbon. */
 let shadowRoot = null /* Root of the shadow DOM in which ribbon is inserted. */
@@ -69,7 +70,10 @@ export const insertRibbon = async ({
             if (isTooltipEnabled) {
                 removeTooltip()
             } else {
-                await insertTooltip({ toolbarNotifications })
+                await insertTooltip({
+                    toolbarNotifications,
+                    loadStyles,
+                })
             }
         },
         setRibbonSidebarRef: ref => {

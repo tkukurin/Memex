@@ -7,13 +7,15 @@ import { getTooltipState, runOnScriptShutdown } from './utils'
 export default async function init({
     toolbarNotifications,
     setupKeyboardShortcuts,
+    loadStyles,
 }: {
     toolbarNotifications: ToolbarNotifications
     setupKeyboardShortcuts?: () => Promise<void>
+    loadStyles: () => void
 }) {
     runOnScriptShutdown(() => removeTooltip())
     // Set up the RPC calls even if the tooltip is enabled or not.
-    setupRPC({ toolbarNotifications })
+    setupRPC({ toolbarNotifications, loadStyles })
     await conditionallyShowOnboardingNotifications({
         toolbarNotifications,
     })
@@ -26,5 +28,5 @@ export default async function init({
     }
 
     await bodyLoader()
-    await insertTooltip({ toolbarNotifications })
+    await insertTooltip({ toolbarNotifications, loadStyles })
 }
