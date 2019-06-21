@@ -1,10 +1,12 @@
 import 'babel-polyfill'
+
 import { RemoteFunctionRegistry } from './util/webextensionRPC'
 import 'src/activity-logger/content_script'
 import 'src/page-analysis/content_script'
 import 'src/search-injection/content_script'
 import AnnotationsManager from 'src/sidebar-overlay/annotations-manager'
 import initContentTooltip from 'src/content-tooltip/content_script'
+import setupKeyboardShortcuts from 'src/content-tooltip/setup-keyboard-shortcuts'
 import 'src/direct-linking/content_script'
 import initRibbonAndSidebar from './sidebar-overlay/content_script'
 import 'src/backup/content_script'
@@ -20,7 +22,7 @@ window['toolbarNotifications'] = toolbarNotifications
 
 const annotationsManager = new AnnotationsManager()
 
-initContentTooltip({ toolbarNotifications })
+initContentTooltip({ toolbarNotifications, setupKeyboardShortcuts })
 initRibbonAndSidebar({ annotationsManager, toolbarNotifications })
 
 initSocialIntegration({ annotationsManager })
