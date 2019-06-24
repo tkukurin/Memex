@@ -5,10 +5,8 @@ import 'src/activity-logger/content_script'
 import 'src/page-analysis/content_script'
 import 'src/search-injection/content_script'
 import AnnotationsManager from 'src/sidebar-overlay/annotations-manager'
-import initContentTooltip, {
-    loadStyles,
-    setupKeyboardShortcuts,
-} from 'src/content-tooltip'
+import initContentTooltip, { setupKeyboardShortcuts } from 'src/content-tooltip'
+import { conditionallyShowOnboardingNotifications } from 'src/content-tooltip/onboarding-interactions'
 import 'src/direct-linking/content_script'
 import initRibbonAndSidebar from './sidebar-overlay/content_script'
 import 'src/backup/content_script'
@@ -24,12 +22,9 @@ window['toolbarNotifications'] = toolbarNotifications
 
 const annotationsManager = new AnnotationsManager()
 
-initContentTooltip({
-    triggerEventName: 'mouseup',
-    setupKeyboardShortcuts,
-    toolbarNotifications,
-    loadStyles,
-})
+conditionallyShowOnboardingNotifications({ toolbarNotifications })
+
+initContentTooltip({ setupKeyboardShortcuts, toolbarNotifications })
 
 initRibbonAndSidebar({ annotationsManager, toolbarNotifications })
 

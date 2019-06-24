@@ -22,3 +22,5 @@ export interface Position {
 }
 
 export type PositionState = 'text' | 'mouse'
+
+export type PositionCalculator = (event?) => Promise<Position>

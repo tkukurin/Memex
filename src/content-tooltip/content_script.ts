@@ -1,26 +1,21 @@
 import { bodyLoader } from '../util/loader'
-import { setupRPC, insertTooltip, removeTooltip } from './interactions'
-import ToolbarNotifications from '../toolbar-notification/content_script'
-import { conditionallyShowOnboardingNotifications } from './onboarding-interactions'
+import initTooltipInteractions from './memex-interaction-builder'
 import { getTooltipState, runOnScriptShutdown } from './utils'
+import ToolbarNotifications from 'src/toolbar-notification/content_script'
 
 export default async function init({
-    triggerEventName,
-    toolbarNotifications,
     setupKeyboardShortcuts,
-    loadStyles,
+    toolbarNotifications,
 }: {
-    triggerEventName: string
-    toolbarNotifications: ToolbarNotifications
     setupKeyboardShortcuts?: () => Promise<void>
-    loadStyles: () => void
+    toolbarNotifications: ToolbarNotifications
 }) {
-    runOnScriptShutdown(() => removeTooltip({ triggerEventName }))
+    const interactions = initTooltipInteractions({ toolbarNotifications })
+    runOnScriptShutdown(() => interactions.removeTooltip())
+
     // Set up the RPC calls even if the tooltip is enabled or not.
-    setupRPC({ toolbarNotifications, loadStyles })
-    await conditionallyShowOnboardingNotifications({
-        toolbarNotifications,
-    })
+    interactions.setupRemoteFunctions()
+
     const isTooltipEnabled = await getTooltipState()
 
     await setupKeyboardShortcuts()
@@ -30,5 +25,5 @@ export default async function init({
     }
 
     await bodyLoader()
-    await insertTooltip({ toolbarNotifications, loadStyles, triggerEventName })
+    await interactions.insertTooltip()
 }

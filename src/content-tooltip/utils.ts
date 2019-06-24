@@ -4,20 +4,21 @@ import { getLocalStorage, setLocalStorage } from 'src/util/storage'
 import * as constants from './constants'
 import { KeyboardShortcuts, Shortcut, PositionState } from './types'
 
-export const delayed = (f, delay) => {
+export const delayed = <T>(f: (...args) => Promise<T> | T, delay) => {
     let timeout = null
     const clear = () => {
         timeout && clearTimeout(timeout)
         timeout = null
     }
 
-    return (...args) => {
-        clear()
-        timeout = setTimeout(() => {
-            f(...args)
+    return (...args) =>
+        new Promise<T>(resolve => {
             clear()
-        }, delay)
-    }
+            timeout = setTimeout(() => {
+                resolve(f(...args))
+                clear()
+            }, delay)
+        })
 }
 
 export const getExtURL = location =>

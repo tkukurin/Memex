@@ -9,7 +9,7 @@ import { createRootElement, destroyRootElement } from './rendering'
 import { removeHighlights } from './highlight-interactions'
 import AnnotationsManager from 'src/sidebar-overlay/annotations-manager'
 import ToolbarNotifications from 'src/toolbar-notification/content_script'
-import { insertTooltip, removeTooltip } from 'src/content-tooltip/interactions'
+import initTooltipInteractions from 'src/content-tooltip/memex-interaction-builder'
 import { loadStyles } from 'src/content-tooltip'
 
 let target = null /* Target container for the Ribbon. */
@@ -61,6 +61,10 @@ export const insertRibbon = async ({
     // React messes up event propagation with shadow dom, hence fix.
     retargetEvents(shadowRoot)
 
+    const tooltipInteractions = initTooltipInteractions({
+        toolbarNotifications,
+    })
+
     // Setup UI for Ribbon/Sidebar.
     setupRibbonAndSidebarUI(target, {
         annotationsManager,
@@ -68,13 +72,9 @@ export const insertRibbon = async ({
             _removeRibbonViaRibbonCross({ toolbarNotifications }),
         insertOrRemoveTooltip: async (isTooltipEnabled: boolean) => {
             if (isTooltipEnabled) {
-                removeTooltip({ triggerEventName: 'mouseup' })
+                await tooltipInteractions.removeTooltip()
             } else {
-                await insertTooltip({
-                    triggerEventName: 'mouseup',
-                    toolbarNotifications,
-                    loadStyles,
-                })
+                await tooltipInteractions.insertTooltip()
             }
         },
         setRibbonSidebarRef: ref => {

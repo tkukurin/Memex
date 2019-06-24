@@ -1,12 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+
 import TooltipContainer from './container'
+import { Position } from '../types'
 
 export function setupUIContainer(
-    target,
+    target: HTMLElement,
     { createAndCopyDirectLink, openSettings, destroyTooltip, createAnnotation },
 ) {
-    return new Promise(async resolve => {
+    return new Promise<(p: Position) => void>(async resolve => {
         ReactDOM.render(
             <TooltipContainer
                 onInit={showTooltip => resolve(showTooltip)}
@@ -20,6 +22,6 @@ export function setupUIContainer(
     })
 }
 
-export function destroyUIContainer(target) {
+export function destroyUIContainer(target: HTMLElement) {
     ReactDOM.unmountComponentAtNode(target)
 }

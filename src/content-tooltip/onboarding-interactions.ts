@@ -12,11 +12,9 @@ const processEventRPC = remoteFunction('processEvent')
 /**
  * Conditionally trigger after highlight message during onboarding.
  * @param toolbarNotifications Toolbar Notification object instance
- * @param position Position of the tooltip
  */
 export const conditionallyShowHighlightNotification = async ({
     toolbarNotifications,
-    position,
 }) => {
     if (!utils.isDemoPage()) {
         return

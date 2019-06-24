@@ -12,7 +12,7 @@ import {
     createAndCopyDirectLink,
     createHighlight,
 } from 'src/direct-linking/content_script/interactions'
-import { userSelectedText } from './interactions'
+import { userSelectedText } from './calculate-tooltip-position'
 import { conditionallyRemoveSelectOption } from './onboarding-interactions'
 import {
     getKeyboardShortcutsState,
