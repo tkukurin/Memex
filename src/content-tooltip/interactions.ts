@@ -58,10 +58,7 @@ export class TooltipInteractions {
 
     setupRemoteFunctions() {
         makeRemotelyCallable({
-            showContentTooltip: () => {
-                return this.insertTooltip()
-            },
-            insertTooltip: ({ override } = {}) => {
+            showContentTooltip: ({ override } = {}) => {
                 this.manualOverride = !!override
                 return this.insertTooltip()
             },
