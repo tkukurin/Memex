@@ -68,9 +68,10 @@ export const insertRibbon = async ({
             _removeRibbonViaRibbonCross({ toolbarNotifications }),
         insertOrRemoveTooltip: async (isTooltipEnabled: boolean) => {
             if (isTooltipEnabled) {
-                removeTooltip()
+                removeTooltip({ triggerEventName: 'mouseup' })
             } else {
                 await insertTooltip({
+                    triggerEventName: 'mouseup',
                     toolbarNotifications,
                     loadStyles,
                 })

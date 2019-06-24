@@ -15,3 +15,10 @@ export interface KeyboardShortcuts {
     addTag: Shortcut
     link: Shortcut
 }
+
+export interface Position {
+    x: number
+    y: number
+}
+
+export type PositionState = 'text' | 'mouse'

@@ -5,15 +5,17 @@ import { conditionallyShowOnboardingNotifications } from './onboarding-interacti
 import { getTooltipState, runOnScriptShutdown } from './utils'
 
 export default async function init({
+    triggerEventName,
     toolbarNotifications,
     setupKeyboardShortcuts,
     loadStyles,
 }: {
+    triggerEventName: string
     toolbarNotifications: ToolbarNotifications
     setupKeyboardShortcuts?: () => Promise<void>
     loadStyles: () => void
 }) {
-    runOnScriptShutdown(() => removeTooltip())
+    runOnScriptShutdown(() => removeTooltip({ triggerEventName }))
     // Set up the RPC calls even if the tooltip is enabled or not.
     setupRPC({ toolbarNotifications, loadStyles })
     await conditionallyShowOnboardingNotifications({
@@ -28,5 +30,5 @@ export default async function init({
     }
 
     await bodyLoader()
-    await insertTooltip({ toolbarNotifications, loadStyles })
+    await insertTooltip({ toolbarNotifications, loadStyles, triggerEventName })
 }

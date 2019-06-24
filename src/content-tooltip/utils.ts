@@ -2,7 +2,7 @@ import { browser } from 'webextension-polyfill-ts'
 
 import { getLocalStorage, setLocalStorage } from 'src/util/storage'
 import * as constants from './constants'
-import { KeyboardShortcuts, Shortcut } from './types'
+import { KeyboardShortcuts, Shortcut, PositionState } from './types'
 
 export const delayed = (f, delay) => {
     let timeout = null
@@ -41,7 +41,7 @@ export const getTooltipState = async () =>
 export const setTooltipState = async tooltipValue =>
     setLocalStorage(constants.TOOLTIP_STORAGE_NAME, tooltipValue)
 
-export const getPositionState = async () =>
+export const getPositionState = async (): Promise<PositionState> =>
     getLocalStorage(
         constants.POSITION_STORAGE_NAME,
         constants.POSITION_DEFAULT_OPTION,

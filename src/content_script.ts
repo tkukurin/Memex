@@ -1,5 +1,4 @@
 import 'babel-polyfill'
-import { browser } from 'webextension-polyfill-ts'
 
 import { RemoteFunctionRegistry } from './util/webextensionRPC'
 import 'src/activity-logger/content_script'
@@ -26,8 +25,9 @@ window['toolbarNotifications'] = toolbarNotifications
 const annotationsManager = new AnnotationsManager()
 
 initContentTooltip({
-    toolbarNotifications,
+    triggerEventName: 'mouseup',
     setupKeyboardShortcuts,
+    toolbarNotifications,
     loadStyles,
 })
 

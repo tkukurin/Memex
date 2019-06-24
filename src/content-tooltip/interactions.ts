@@ -9,20 +9,24 @@ import { remoteFunction, makeRemotelyCallable } from 'src/util/webextensionRPC'
 import ToolbarNotifications from 'src/toolbar-notification/content_script'
 import { conditionallyShowHighlightNotification } from './onboarding-interactions'
 import { setupUIContainer, destroyUIContainer } from './components'
+import { Position } from './types'
 
 const openOptionsRPC = remoteFunction('openOptionsTab')
 let mouseupListener = null
 
-export function setupTooltipTrigger(callback, toolbarNotifications) {
-    mouseupListener = event => {
-        conditionallyTriggerTooltip({ callback, toolbarNotifications }, event)
-    }
-
-    document.body.addEventListener('mouseup', mouseupListener)
+export function setupTooltipTrigger({
+    eventName,
+    callback,
+}: {
+    eventName: string
+    callback: (e: Event) => void
+}) {
+    mouseupListener = callback
+    document.body.addEventListener(eventName, mouseupListener)
 }
 
-export function destroyTooltipTrigger() {
-    document.body.removeEventListener('mouseup', mouseupListener)
+export function destroyTooltipTrigger({ eventName }: { eventName: string }) {
+    document.body.removeEventListener(eventName, mouseupListener)
     mouseupListener = null
 }
 
@@ -58,9 +62,11 @@ let manualOverride = false
 export async function insertTooltip({
     toolbarNotifications,
     loadStyles,
+    triggerEventName,
 }: {
     toolbarNotifications: ToolbarNotifications
     loadStyles: () => void
+    triggerEventName: string
 }) {
     // If target is set, Tooltip has already been injected.
     if (target) {
@@ -79,7 +85,7 @@ export async function insertTooltip({
         openSettings: () => openOptionsRPC('settings'),
         destroyTooltip: async () => {
             manualOverride = true
-            removeTooltip()
+            removeTooltip({ triggerEventName })
 
             const closeMessageShown = await _getCloseMessageShown()
             if (!closeMessageShown) {
@@ -91,15 +97,27 @@ export async function insertTooltip({
         },
     })
 
-    setupTooltipTrigger(showTooltip, toolbarNotifications)
+    setupTooltipTrigger({
+        eventName: triggerEventName,
+        callback: event => {
+            conditionallyTriggerTooltip(
+                { callback: showTooltip, toolbarNotifications },
+                event,
+            )
+        },
+    })
     conditionallyTriggerTooltip({ callback: showTooltip, toolbarNotifications })
 }
 
-export const removeTooltip = () => {
+export const removeTooltip = ({
+    triggerEventName,
+}: {
+    triggerEventName: string
+}) => {
     if (!target) {
         return
     }
-    destroyTooltipTrigger()
+    destroyTooltipTrigger({ eventName: triggerEventName })
     destroyUIContainer(target)
     target.remove()
 
@@ -121,9 +139,13 @@ const insertOrRemoveTooltip = async ({ toolbarNotifications, loadStyles }) => {
     const isTooltipPresent = !!target
 
     if (isTooltipEnabled && !isTooltipPresent) {
-        insertTooltip({ toolbarNotifications, loadStyles })
+        insertTooltip({
+            toolbarNotifications,
+            loadStyles,
+            triggerEventName: 'mouseup',
+        })
     } else if (!isTooltipEnabled && isTooltipPresent) {
-        removeTooltip()
+        removeTooltip({ triggerEventName: 'mouseup' })
     }
 }
 
@@ -140,7 +162,11 @@ export async function setupRPC({
     makeRemotelyCallable({
         showContentTooltip: async () => {
             if (!showTooltip) {
-                await insertTooltip({ toolbarNotifications, loadStyles })
+                await insertTooltip({
+                    toolbarNotifications,
+                    loadStyles,
+                    triggerEventName: 'mouseup',
+                })
             }
             if (userSelectedText()) {
                 const position = calculateTooltipPosition()
@@ -149,11 +175,15 @@ export async function setupRPC({
         },
         insertTooltip: ({ override } = {}) => {
             manualOverride = !!override
-            insertTooltip({ toolbarNotifications, loadStyles })
+            insertTooltip({
+                toolbarNotifications,
+                loadStyles,
+                triggerEventName: 'mouseup',
+            })
         },
         removeTooltip: ({ override } = {}) => {
             manualOverride = !!override
-            removeTooltip()
+            removeTooltip({ triggerEventName: 'mouseup' })
         },
         insertOrRemoveTooltip: async () => {
             await insertOrRemoveTooltip({ toolbarNotifications, loadStyles })
@@ -170,33 +200,36 @@ export async function setupRPC({
  * page has loaded. So we don't need to check for condition ii) since the
  * tooltip wouldn't have popped up yet.
  */
-export const conditionallyTriggerTooltip = delayed(
-    async ({ callback, toolbarNotifications }, event) => {
-        if (!userSelectedText() || (event && isTargetInsideTooltip(event))) {
-            return
-        }
+export const conditionallyTriggerTooltip: (
+    args: {
+        callback(p: Position): void
+        toolbarNotifications: ToolbarNotifications
+    },
+    event?: Event,
+) => void = delayed(async ({ callback, toolbarNotifications }, event) => {
+    if (!userSelectedText() || (event && isTargetInsideTooltip(event))) {
+        return
+    }
 
-        /*
+    /*
     If all the conditions passed, then this returns the position to anchor the
     tooltip. The positioning is based on the user's preferred method. But in the
     case of tooltip popping up before page load, it resorts to text based method
     */
-        const positioning = await getPositionState()
-        let position
-        if (positioning === 'text' || !event) {
-            position = calculateTooltipPosition()
-        } else if (positioning === 'mouse' && event) {
-            position = { x: event.pageX, y: event.pageY }
-        }
-        callback(position)
+    const positioning = await getPositionState()
+    let position: Position
+    if (positioning === 'text' || !event) {
+        position = calculateTooltipPosition()
+    } else if (positioning === 'mouse' && event) {
+        position = { x: event.pageX, y: event.pageY }
+    }
+    callback(position)
 
-        conditionallyShowHighlightNotification({
-            toolbarNotifications,
-            position,
-        })
-    },
-    300,
-)
+    conditionallyShowHighlightNotification({
+        toolbarNotifications,
+        position,
+    })
+}, 300)
 
 export function calculateTooltipPosition() {
     const range = document.getSelection().getRangeAt(0)
