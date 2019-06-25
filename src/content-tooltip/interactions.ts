@@ -1,11 +1,18 @@
 import { delayed, getTooltipState } from './utils'
-import {
-    createAndCopyDirectLink,
-    createAnnotation,
-} from 'src/direct-linking/content_script/interactions'
-import { remoteFunction, makeRemotelyCallable } from 'src/util/webextensionRPC'
+import { makeRemotelyCallable } from 'src/util/webextensionRPC'
 import { setupUIContainer, destroyUIContainer } from './components'
 import { Position, PositionCalculator } from './types'
+
+export interface Props {
+    triggerEventName: string
+    calcTooltipPosition: PositionCalculator
+    createAndCopyDirectLink: () => Promise<{ url: string }>
+    createAnnotation: () => Promise<void>
+    loadStyles: () => void
+    containerAugmenter?: (container: any) => any
+    onDestroy?: () => void
+    onTrigger?: () => void
+}
 
 export class TooltipInteractions {
     /** Target container for the Tooltip. */
@@ -14,30 +21,29 @@ export class TooltipInteractions {
     private manualOverride = false
     private triggerEventName: string
     private calcTooltipPosition: PositionCalculator
-    private openOptionsRPC = remoteFunction('openOptionsTab')
     private triggerListener = null
+    private createAndCopyDirectLink: () => Promise<{ url: string }>
+    private containerAugmenter: (container: any) => any
+    private createAnnotation: () => Promise<void>
     private showTooltip: (p: Position) => void
     private loadStyles: () => void
     private onDestroy: () => void
     private onTrigger: () => void
 
-    constructor(props: {
-        triggerEventName: string
-        calcTooltipPosition: PositionCalculator
-        loadStyles: () => void
-        onDestroy?: () => void
-        onTrigger?: () => void
-    }) {
+    constructor(props: Props) {
         this.triggerEventName = props.triggerEventName
         this.calcTooltipPosition = delayed<Position>(
             props.calcTooltipPosition,
             300,
         )
         this.loadStyles = props.loadStyles
+        this.createAndCopyDirectLink = props.createAndCopyDirectLink
+        this.createAnnotation = props.createAnnotation
 
         const noop = () => undefined
         this.onDestroy = props.onDestroy || noop
         this.onTrigger = props.onTrigger || noop
+        this.containerAugmenter = props.containerAugmenter || noop
     }
 
     setupTooltipTrigger({ callback }: { callback: (e: Event) => void }) {
@@ -91,9 +97,9 @@ export class TooltipInteractions {
         this.loadStyles()
 
         this.showTooltip = await setupUIContainer(this.target, {
-            createAndCopyDirectLink,
-            createAnnotation,
-            openSettings: () => this.openOptionsRPC('settings'),
+            createAndCopyDirectLink: this.createAndCopyDirectLink,
+            createAnnotation: this.createAnnotation,
+            containerAugmenter: this.containerAugmenter,
             destroyTooltip: async () => {
                 this.manualOverride = true
                 this.removeTooltip()

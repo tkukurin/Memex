@@ -1,21 +1,24 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import TooltipContainer from './container'
+import TooltipContainer, { InjectedProps } from './container'
 import { Position } from '../types'
+
+export interface Props extends InjectedProps {
+    containerAugmenter?: (container: any) => any
+}
 
 export function setupUIContainer(
     target: HTMLElement,
-    { createAndCopyDirectLink, openSettings, destroyTooltip, createAnnotation },
+    { containerAugmenter = f => f, ...props }: Props,
 ) {
+    const AugTooltipContainer = containerAugmenter(TooltipContainer)
+
     return new Promise<(p: Position) => void>(async resolve => {
         ReactDOM.render(
-            <TooltipContainer
+            <AugTooltipContainer
                 onInit={showTooltip => resolve(showTooltip)}
-                destroy={destroyTooltip}
-                createAndCopyDirectLink={createAndCopyDirectLink}
-                createAnnotation={createAnnotation}
-                openSettings={openSettings}
+                {...props}
             />,
             target,
         )
