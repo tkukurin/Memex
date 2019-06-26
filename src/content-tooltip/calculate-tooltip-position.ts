@@ -1,5 +1,4 @@
-import { getPositionState } from './utils'
-import { Position, PositionCalculator } from './types'
+import { Position, PositionCalculator, PositionState } from './types'
 
 /**
  * Checks for certain conditions before returning the tooltip position.
@@ -10,7 +9,9 @@ import { Position, PositionCalculator } from './types'
  * page has loaded. So we don't need to check for condition ii) since the
  * tooltip wouldn't have popped up yet.
  */
-const calcTooltipPosition: PositionCalculator = async event => {
+const calcTooltipPosition = (
+    getPositioning: () => Promise<PositionState>,
+): PositionCalculator => async event => {
     if (!userSelectedText() || (event && isTargetInsideTooltip(event))) {
         return null
     }
@@ -20,7 +21,7 @@ const calcTooltipPosition: PositionCalculator = async event => {
     tooltip. The positioning is based on the user's preferred method. But in the
     case of tooltip popping up before page load, it resorts to text based method
     */
-    const positioning = await getPositionState()
+    const positioning = await getPositioning()
     let position: Position
     if (positioning === 'text' || !event) {
         position = calcTextPosition()

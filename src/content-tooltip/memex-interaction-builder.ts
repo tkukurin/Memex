@@ -15,6 +15,7 @@ import {
     createAnnotation,
 } from 'src/direct-linking/content_script/interactions'
 import { STAGES } from 'src/overview/onboarding/constants'
+import { getTooltipState, getPositionState } from './utils'
 
 const CLOSE_MESSAGESHOWN_KEY = 'tooltip.close-message-shown'
 
@@ -50,9 +51,10 @@ export default ({ toolbarNotifications }) =>
         triggerEventName: 'mouseup',
         createAndCopyDirectLink,
         makeRemotelyCallable,
-        calcTooltipPosition,
+        calcTooltipPosition: calcTooltipPosition(getPositionState),
         containerAugmenter,
         loadStyles,
+        isTooltipEnabled: getTooltipState,
         async onDestroy() {
             const closeMessageShown = await _getCloseMessageShown()
             if (!closeMessageShown) {
