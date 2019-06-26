@@ -2,6 +2,7 @@
 import { browser } from 'webextension-polyfill-ts'
 import onClickOutside from 'react-onclickoutside'
 
+import { makeRemotelyCallable } from 'src/util/webextensionRPC'
 import { TooltipInteractions } from './interactions'
 import loadStyles from './load-styles'
 import calcTooltipPosition from './calculate-tooltip-position'
@@ -48,6 +49,7 @@ export default ({ toolbarNotifications }) =>
     new TooltipInteractions({
         triggerEventName: 'mouseup',
         createAndCopyDirectLink,
+        makeRemotelyCallable,
         calcTooltipPosition,
         containerAugmenter,
         loadStyles,

@@ -1,15 +1,15 @@
 import { delayed, getTooltipState } from './utils'
-import { makeRemotelyCallable } from 'src/util/webextensionRPC'
 import { setupUIContainer, destroyUIContainer } from './components'
 import { Position, PositionCalculator } from './types'
 
 export interface Props {
     triggerEventName: string
     calcTooltipPosition: PositionCalculator
-    createAndCopyDirectLink: () => Promise<{ url: string }>
-    createAnnotation: () => Promise<void>
-    loadStyles: () => void
+    makeRemotelyCallable: (fns: any) => void
+    createAndCopyDirectLink: () => Promise<any>
+    createAnnotation: () => Promise<any>
     containerAugmenter?: (container: any) => any
+    loadStyles?: () => void
     onDestroy?: () => void
     onTrigger?: () => void
 }
@@ -22,6 +22,7 @@ export class TooltipInteractions {
     private triggerEventName: string
     private calcTooltipPosition: PositionCalculator
     private triggerListener = null
+    private makeRemotelyCallable
     private createAndCopyDirectLink: () => Promise<{ url: string }>
     private containerAugmenter: (container: any) => any
     private createAnnotation: () => Promise<void>
@@ -36,11 +37,12 @@ export class TooltipInteractions {
             props.calcTooltipPosition,
             300,
         )
-        this.loadStyles = props.loadStyles
         this.createAndCopyDirectLink = props.createAndCopyDirectLink
         this.createAnnotation = props.createAnnotation
+        this.makeRemotelyCallable = props.makeRemotelyCallable
 
         const noop = () => undefined
+        this.loadStyles = props.loadStyles || noop
         this.onDestroy = props.onDestroy || noop
         this.onTrigger = props.onTrigger || noop
         this.containerAugmenter = props.containerAugmenter || noop
@@ -63,12 +65,12 @@ export class TooltipInteractions {
     }
 
     setupRemoteFunctions() {
-        makeRemotelyCallable({
-            showContentTooltip: ({ override } = {}) => {
+        this.makeRemotelyCallable({
+            showContentTooltip: ({ override } = { override: false }) => {
                 this.manualOverride = !!override
                 return this.insertTooltip()
             },
-            removeTooltip: ({ override } = {}) => {
+            removeTooltip: ({ override } = { override: false }) => {
                 this.manualOverride = !!override
                 return this.removeTooltip()
             },
