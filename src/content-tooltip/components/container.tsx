@@ -65,14 +65,13 @@ class TooltipContainer extends React.Component<Props, State> {
         this.props.destroyTooltip()
     }
 
-    createLink = async () => {
-        this.setState({
-            tooltipState: 'running',
-        })
+    createLink: React.MouseEventHandler = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        this.setState({ tooltipState: 'running' })
         await this.props.createAndCopyDirectLink()
-        this.setState({
-            tooltipState: 'copied',
-        })
+        this.setState({ tooltipState: 'copied' })
     }
 
     createAnnotation: React.MouseEventHandler = async e => {
@@ -83,7 +82,7 @@ class TooltipContainer extends React.Component<Props, State> {
         // quick hack, to prevent the tooltip from popping again
         setTimeout(() => {
             this.setState({
-                tooltipState: 'runnning' as TooltipState,
+                tooltipState: 'running',
                 showTooltip: false,
                 position: TooltipContainer.DEF_POSITION,
             })
