@@ -7,7 +7,7 @@ import { externalTsModules } from './external'
 
 export const extensions = ['.ts', '.tsx', '.js', '.jsx', '.coffee']
 
-export const entry = {
+export const defEntry = {
     background: './src/background.ts',
     popup: './src/popup/index.tsx',
     content_script: './src/content_script.ts',
@@ -21,7 +21,12 @@ export const output = {
     filename: '[name].js',
 }
 
-export default ({ context = __dirname, mode = 'development', ...opts }) => {
+export default ({
+    context = __dirname,
+    mode = 'development',
+    entry = defEntry,
+    ...opts
+}) => {
     const aliases = {
         src: path.resolve(context, './src'),
     }
