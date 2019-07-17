@@ -1,0 +1,81 @@
+digraph G {
+    node [
+        shape=rect;
+    ];
+
+    subgraph cluster_extension {
+        label="Extension";
+        color="#FFF"
+        
+        subgraph cluster_extension_storage {
+            label="Storage";
+
+            exension_sync [label="Sync layer"];
+            extension_database [label="Database (IndexedDB)"];
+            extension_storage_modules [label="Storage modules"];
+        }
+
+        subgraph cluster_background_page {
+            label="Background page";
+            
+            extension_backup_module [label="Backup module"];
+            extension_analytics [label="Analytics module"];
+            extension_search_module [label="Search module"];
+            extension_feature_modules [label="Feature modules\n(annotations, search, etc.)"];
+        }
+
+        subgraph cluster_content_scripts {
+            label="Content scripts\n(injected into all pages)";
+
+            extension_page_analyzer [label="Page analyzer"];
+            extension_in_page_ui [label="In-page UI\n(tooltip, sidebar)"];
+            extension_pdf_analyzer [label="MISSING: PDF analyzer"];
+        }
+
+        extension_in_page_ui -> extension_feature_modules;
+        extension_pdf_analyzer -> extension_search_module;
+        extension_page_analyzer -> extension_search_module;
+        extension_feature_modules -> extension_storage_modules;
+    }
+
+    subgraph cluster_mobile {
+        label="Mobile app"
+
+        subgraph cluster_app_storage {
+            label="Storage";
+
+            app_sync [label="Sync layer"];
+        }
+    }
+
+    subgraph cluster_firebase_backend {
+        label="Firebase backend";
+
+        auth_service [label="DEVELOPING: Auth service"];
+        signalling_service [label="DEVELOPING: Signalling service"];
+
+        subgraph cluster_sync_service {
+            label="Sync service";
+
+            shared_sync_log [label="DEVELOPING: Shared Sync log"];
+        }
+    }
+
+    subgraph cluster_aws_backend {
+        subgraph cluster_direct_linking_service {
+
+        }
+
+        subgraph cluster_memex_root_service {
+            
+        }
+    }
+
+
+    subgraph cluster_backup_backends {
+
+    }
+
+    exension_sync -> shared_sync_log;
+    app_sync -> shared_sync_log;
+}
