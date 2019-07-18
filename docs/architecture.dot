@@ -15,7 +15,7 @@ digraph G {
                 label="Storex";
 
                 subgraph cluster_extension_sync {
-                    label="Sync layer";
+                    label="DEVELOPING: Sync layer";
 
                     extension_sync_transport [label="Sync log transport"];
                     extension_sync_logger [label="Operation logger"];
@@ -50,13 +50,14 @@ digraph G {
         }
 
         extension_in_page_ui -> extension_feature_modules;
+        extension_in_page_ui -> extension_search_module;
         extension_pdf_analyzer -> extension_search_module;
         extension_page_analyzer -> extension_search_module;
         extension_feature_modules -> extension_storage_modules;
     }
 
     subgraph cluster_mobile {
-        label="Mobile app"
+        label="DEVELOPING: Mobile app"
 
         subgraph cluster_app_storage {
             label="Storage\n(same layout\nas extension)";
@@ -74,9 +75,9 @@ digraph G {
         following_service [label="MISSING: Content following service"];
 
         subgraph cluster_sync_service {
-            label="Sync service";
+            label="DEVELOPING: Sync service";
 
-            shared_sync_log [label="DEVELOPING: Shared Sync log\n(using Storex)"];
+            shared_sync_log [label="Shared Sync log\n(using Storex)"];
             sync_service [label="", style="invis", width=0, height=0];
         }
 
@@ -85,6 +86,7 @@ digraph G {
         signalling_service -> auth_service;
         sync_service -> auth_service;
         sharing_service -> auth_service;
+        sharing_service -> following_service;
     }
 
     subgraph cluster_aws_backend {
@@ -124,6 +126,12 @@ digraph G {
         website_shop [label="Online shop"];
     }
 
+    subgraph cluster_webinterface {
+        label="MISSING: Web interface";
+
+        webinterface_public_collections [label="Public collection UI"];
+    }
+
     snipcart [label="Snipcart"];
 
     extension_sync_transport -> shared_sync_log;
@@ -138,4 +146,7 @@ digraph G {
 
     website_shop -> snipcart;
     website_shop -> auth_service;
+
+    webinterface_public_collections -> sharing_service;
+    webinterface_public_collections -> auth_service;
 }
