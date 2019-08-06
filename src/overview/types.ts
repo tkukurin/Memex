@@ -1,8 +1,8 @@
 import { Annotation } from 'src/sidebar-overlay/sidebar/types'
 import { PageUrlsByDay } from 'src/search/background/types'
-import { SocialPage } from 'src/social-integration/types'
+// import { SocialPage } from 'src/social-integration/types'
 
-export interface Result extends SocialPage {
+export interface Result {
     url: string
     title: string
     tags: string[]

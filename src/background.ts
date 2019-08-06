@@ -46,7 +46,6 @@ social.setupRemoteFunctions()
 
 export const directLinking = new DirectLinkingBackground({
     storageManager,
-    socialBg: social,
 })
 directLinking.setupRemoteFunctions()
 directLinking.setupRequestInterceptor()

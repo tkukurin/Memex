@@ -2,7 +2,6 @@ import Storex from '@worldbrain/storex'
 import { registerModuleMapCollections } from '@worldbrain/storex-pattern-modules'
 
 import AnnotsBg from 'src/direct-linking/background'
-import SocialBackground from 'src/social-integration/background'
 import CustomListBg from 'src/custom-lists/background'
 import BookmarksBackground from 'src/bookmarks/background'
 import initStorageManager from './memory-storex'
@@ -57,19 +56,14 @@ describe('Search index integration', () => {
         const customListBg = new CustomListBg({
             storageManager,
         })
-        const socialBg = new SocialBackground({
-            storageManager,
-        })
         const annotsBg = new AnnotsBg({
             storageManager,
-            socialBg,
         })
 
         registerModuleMapCollections(storageManager.registry, {
             bookmarks: bmBackground.storage,
             customLists: customListBg.storage,
             annotsStorage: annotsBg.annotationStorage,
-            socialStorage: socialBg['storage'],
         })
         await storageManager.finishInitialization()
         setStorex(storageManager)

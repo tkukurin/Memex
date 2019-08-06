@@ -65,7 +65,10 @@ const handleSearchResult = (overwrite: boolean) => (
         isAnnotsSearch: payload.isAnnotsSearch,
     }
 
-    if (state.searchType === 'social' && payload.docs.every(doc => !doc.user)) {
+    if (
+        state.searchType === 'social' &&
+        payload.docs.every(doc => !doc['user'])
+    ) {
         return {
             ...state,
             ...commonState,

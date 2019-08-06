@@ -59,7 +59,6 @@ describe('Social storage', () => {
         })
         const annotsBg = new AnnotsBg({
             storageManager,
-            socialBg,
         })
 
         socialStorage = socialBg['storage']

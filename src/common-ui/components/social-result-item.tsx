@@ -1,5 +1,6 @@
+import { SocialPage } from 'src/social-integration/types'
 import React, { PureComponent } from 'react'
-import { Props } from './result-item'
+import { Props as ResultItemProps } from './result-item'
 import moment from 'moment'
 import reactStringReplace from 'react-string-replace'
 import ResultItemActions from './result-item-actions'
@@ -12,6 +13,8 @@ import Link from './link'
 import cx from 'classnames'
 
 const styles = require('./result-item.css')
+
+export interface Props extends SocialPage, ResultItemProps {}
 
 class SocialResultItem extends PureComponent<Props> {
     get hrefToUser() {

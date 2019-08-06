@@ -95,7 +95,6 @@ describe.skip('Annotations search', () => {
         storageManager = initStorageManager()
         annotsBg = new AnnotsBg({
             storageManager,
-            socialBg: {} as any,
         })
 
         searchBg = new SearchBg({

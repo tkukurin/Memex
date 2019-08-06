@@ -7,13 +7,12 @@ import React, {
 import cx from 'classnames'
 import AnnotationList from './annotation-list'
 import { LoadingIndicator } from 'src/common-ui/components'
-import { SocialPage } from 'src/social-integration/types'
 import PageResultItem from './page-result-item'
 import SocialResultItem from './social-result-item'
 
 const styles = require('./result-item.css')
 
-export interface Props extends Partial<SocialPage> {
+export interface Props {
     url: string
     title?: string
     favIcon?: string
@@ -122,7 +121,7 @@ class ResultItem extends PureComponent<Props> {
                         target="_blank"
                     >
                         {this.props.isSocial ? (
-                            <SocialResultItem {...this.props} />
+                            <SocialResultItem {...this.props as any} />
                         ) : (
                             <PageResultItem {...this.props} />
                         )}
