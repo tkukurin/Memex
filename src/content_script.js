@@ -9,7 +9,10 @@ import 'src/direct-linking/content_script'
 import initRibbonAndSidebar from './sidebar-overlay/content_script'
 import 'src/backup/content_script'
 import ToolbarNotifications from 'src/toolbar-notification/content_script'
-import initSocialIntegration from 'src/social-integration/content_script'
+
+// Disabled feature
+// import initSocialIntegration from 'src/social-integration/content_script'
+// initSocialIntegration({ annotationsManager })
 
 const remoteFunctionRegistry = new RemoteFunctionRegistry()
 
@@ -22,5 +25,3 @@ const annotationsManager = new AnnotationsManager()
 
 initContentTooltip({ toolbarNotifications })
 initRibbonAndSidebar({ annotationsManager, toolbarNotifications })
-
-initSocialIntegration({ annotationsManager })
