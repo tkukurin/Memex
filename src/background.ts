@@ -30,10 +30,13 @@ import {
 initSentry()
 
 const storageManager = initStorex()
-const backgroundModules = createBackgroundModules({ storageManager })
+const backgroundModules = createBackgroundModules({
+    storageManager,
+    browserAPIs: browser,
+})
 
 // TODO: There's still some evil code around that imports this entry point
-const { tags, customList } = backgroundModules
+const { tags, customLists: customList } = backgroundModules
 export { tags, customList }
 
 setupBackgroundModules(backgroundModules)
