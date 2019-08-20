@@ -117,10 +117,7 @@ export default class CustomListStorage extends StorageModule {
                         id: '$id:pk',
                     },
                     {
-                        $set: {
-                            name: '$name:string',
-                            createdAt: new Date(),
-                        },
+                        name: '$name:string',
                     },
                 ],
             },
