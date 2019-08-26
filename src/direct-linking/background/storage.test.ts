@@ -62,6 +62,7 @@ describe('Annotations storage', () => {
         const annotBg = new AnnotationBackground({
             storageManager,
             socialBg: {} as any,
+            browserAPIs: { storage: {} } as any,
         })
         customListsBg = new CustomListBackground({ storageManager })
         annotationStorage = annotBg.annotationStorage
