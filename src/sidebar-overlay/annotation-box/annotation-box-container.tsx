@@ -7,60 +7,49 @@ import { MapDispatchToProps } from '../types'
 import DefaultDeleteModeContent from './default-delete-mode-content'
 import EditModeContent from './edit-mode-content'
 import { TruncatedTextRenderer } from '../components'
-import niceTime from '../../util/nice-time'
 import { CrowdfundingBox } from 'src/common-ui/crowdfunding'
-import { remoteFunction } from 'src/util/webextensionRPC'
-import { EVENT_NAMES } from 'src/analytics/internal/constants'
 import { actions as filterActs } from 'src/search-filters'
+import { StatefulUIElement } from 'src/common-ui/types'
 
+import Logic, {
+    State,
+    LogicEvent,
+    Props,
+    getTruncatedTextObject,
+    DispatchProps,
+    OwnProps,
+} from './annotation-box-container.logic'
+import niceTime from 'src/util/nice-time'
 const styles = require('./annotation-box-container.css')
 const footerStyles = require('./default-footer.css')
 
-interface OwnProps {
-    /** Required to decide how to go to an annotation when it's clicked. */
-    env: 'inpage' | 'overview'
-    url: string
-    className?: string
-    isActive?: boolean
-    isHovered?: boolean
-    createdWhen: number
-    lastEdited: number
-    body?: string
-    comment?: string
-    tags: string[]
-    hasBookmark?: boolean
-    handleGoToAnnotation: (e: React.MouseEvent<HTMLElement>) => void
-    handleMouseEnter?: (e: Event) => void
-    handleMouseLeave?: (e: Event) => void
-    handleEditAnnotation: (url: string, comment: string, tags: string[]) => void
-    handleDeleteAnnotation: (url: string) => void
-    handleBookmarkToggle: (url: string) => void
-}
-
-interface DispatchProps {
-    handleTagClick: (tag: string) => void
-}
-
-type Props = OwnProps & DispatchProps
-
-interface State {
-    mode: 'default' | 'edit' | 'delete'
-    displayCrowdfunding: boolean
-}
-
-class AnnotationBoxContainer extends React.Component<Props, State> {
+class AnnotationBoxContainer extends StatefulUIElement<
+    Props,
+    State,
+    LogicEvent
+> {
     static defaultProps = {
         handleMouseEnter: () => undefined,
         handleMouseLeave: () => undefined,
         handleTagClick: () => undefined,
     }
 
-    private _processEventRPC = remoteFunction('processEvent')
     private _boxRef: HTMLDivElement = null
 
-    state: State = {
-        mode: 'default',
-        displayCrowdfunding: false,
+    constructor(props: Props) {
+        super(
+            props,
+            new Logic({
+                props: new Proxy(
+                    {},
+                    {
+                        get: (target, key) => {
+                            return this.props[key]
+                        },
+                    },
+                ) as Props,
+            }),
+        )
     }
 
     componentDidMount() {
@@ -69,10 +58,6 @@ class AnnotationBoxContainer extends React.Component<Props, State> {
 
     componentWillUnmount() {
         this._removeEventListeners()
-    }
-
-    private get isEdited() {
-        return this.props.lastEdited !== this.props.createdWhen
     }
 
     private _setupEventListeners = () => {
@@ -101,92 +86,16 @@ class AnnotationBoxContainer extends React.Component<Props, State> {
         }
     }
 
-    private _setDisplayCrowdfunding = async (
-        value: boolean,
-        event: 'clickReplyButton' | 'clickShareButton' = undefined,
-    ) => {
-        if (event) {
-            // Call RPC to process the event.
-            const type =
-                event === 'clickReplyButton'
-                    ? EVENT_NAMES.CLICK_REPLY_BUTTON
-                    : EVENT_NAMES.CLICK_SHARE_BUTTON
-            await this._processEventRPC({ type })
-        }
-        this.setState({ displayCrowdfunding: value })
-    }
-
-    private _getFormattedTimestamp = (timestamp: number) => niceTime(timestamp)
-
-    private _getTruncatedTextObject: (
-        text: string,
-    ) => { isTextTooLong: boolean; text: string } = text => {
-        if (text.length > 280) {
-            const truncatedText = text.slice(0, 280)
-            return {
-                isTextTooLong: true,
-                text: truncatedText,
-            }
-        }
-
-        for (let i = 0, newlineCount = 0; i < text.length; ++i) {
-            if (text[i] === '\n') {
-                newlineCount++
-                if (newlineCount > 4) {
-                    const truncatedText = text.slice(0, i)
-                    return {
-                        isTextTooLong: true,
-                        text: truncatedText,
-                    }
-                }
-            }
-        }
-
-        return {
-            isTextTooLong: false,
-            text,
-        }
-    }
-
-    private _handleEditAnnotation = (
-        commentText: string,
-        tagsInput: string[],
-    ) => {
-        const { url } = this.props
-        this.props.handleEditAnnotation(url, commentText.trim(), tagsInput)
-        this.setState({ mode: 'default' })
-    }
-
-    private _handleDeleteAnnotation = () => {
-        this.props.handleDeleteAnnotation(this.props.url)
-    }
-
-    private _handleEditIconClick = () => {
-        this.setState({ mode: 'edit' })
-    }
-
-    private _handleTrashIconClick = () => {
-        this.setState({ mode: 'delete' })
-    }
-
-    private _handleShareIconClick = () => {
-        this._setDisplayCrowdfunding(true, 'clickShareButton')
-    }
-
-    private _handleReplyIconClick = () => {
-        this._setDisplayCrowdfunding(true, 'clickReplyButton')
-    }
-
-    private _handleCancelOperation = () => {
-        this.setState({ mode: 'default' })
-    }
-
-    private handleBookmarkToggle = () => {
-        this.props.handleBookmarkToggle(this.props.url)
-    }
-
     private _setBoxRef = (ref: HTMLDivElement) => {
         this._boxRef = ref
+    }
+
+    _getFormattedTimestamp(timestamp: number) {
+        return niceTime(timestamp)
+    }
+
+    private get _isEdited() {
+        return this.props.lastEdited !== this.props.createdWhen
     }
 
     render() {
@@ -194,7 +103,9 @@ class AnnotationBoxContainer extends React.Component<Props, State> {
         if (displayCrowdfunding) {
             return (
                 <CrowdfundingBox
-                    onClose={() => this._setDisplayCrowdfunding(false)}
+                    onClose={() =>
+                        this.processEvent('onCrowdfundingBoxClose', {})
+                    }
                 />
             )
         }
@@ -226,9 +137,7 @@ class AnnotationBoxContainer extends React.Component<Props, State> {
                         <span className={styles.highlightText}>
                             <TruncatedTextRenderer
                                 text={this.props.body}
-                                getTruncatedTextObject={
-                                    this._getTruncatedTextObject
-                                }
+                                getTruncatedTextObject={getTruncatedTextObject}
                             />
                         </span>
                     </div>
@@ -241,26 +150,45 @@ class AnnotationBoxContainer extends React.Component<Props, State> {
                         body={this.props.body}
                         comment={this.props.comment}
                         tags={this.props.tags}
-                        isEdited={this.isEdited}
+                        isEdited={this._isEdited}
                         timestamp={timestamp}
                         hasBookmark={this.props.hasBookmark}
                         handleGoToAnnotation={this.props.handleGoToAnnotation}
-                        handleDeleteAnnotation={this._handleDeleteAnnotation}
-                        handleCancelOperation={this._handleCancelOperation}
+                        handleDeleteAnnotation={() =>
+                            this.processEvent('onDeleteAnnotation', {})
+                        }
+                        handleCancelOperation={() =>
+                            this.processEvent('onCancelOperation', {})
+                        }
                         handleTagClick={this.props.handleTagClick}
-                        editIconClickHandler={this._handleEditIconClick}
-                        trashIconClickHandler={this._handleTrashIconClick}
-                        shareIconClickHandler={this._handleShareIconClick}
-                        getTruncatedTextObject={this._getTruncatedTextObject}
-                        handleBookmarkToggle={this.handleBookmarkToggle}
+                        editIconClickHandler={() =>
+                            this.processEvent('onEditIconClick', {})
+                        }
+                        trashIconClickHandler={() =>
+                            this.processEvent('onTrashIconClick', {})
+                        }
+                        shareIconClickHandler={() =>
+                            this.processEvent('onShareIconClick', {})
+                        }
+                        getTruncatedTextObject={getTruncatedTextObject}
+                        handleBookmarkToggle={() =>
+                            this.processEvent('onBookmarkToggle', {})
+                        }
                     />
                 ) : (
                     <EditModeContent
                         env={this.props.env}
                         comment={this.props.comment}
                         tags={this.props.tags}
-                        handleCancelOperation={this._handleCancelOperation}
-                        handleEditAnnotation={this._handleEditAnnotation}
+                        handleCancelOperation={() =>
+                            this.processEvent('onCancelOperation', {})
+                        }
+                        handleEditAnnotation={(commentText, tagsInput) => {
+                            this.processEvent('onEditAnnotation', {
+                                commentText,
+                                tagsInput,
+                            })
+                        }}
                     />
                 )}
             </div>

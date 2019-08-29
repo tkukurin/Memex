@@ -18,7 +18,6 @@ import {
 import { actions as filterActs } from 'src/search-filters'
 
 interface StateProps {
-    isOpen: boolean
     isLoading: boolean
     needsWaypoint: boolean
     appendLoader: boolean
@@ -54,6 +53,7 @@ interface DispatchProps {
 
 interface OwnProps {
     env: 'inpage' | 'overview'
+    isSidebarOpen: boolean
     annotationsManager: AnnotationsManager
     sortAnnotationsByPosition?: (annotations: Annotation[]) => Annotation[]
     goToAnnotation: (annotation: Annotation) => void
@@ -79,7 +79,7 @@ class SidebarContainer extends React.Component<Props> {
     }
 
     private onKeydown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && this.props.isOpen) {
+        if (e.key === 'Escape' && this.props.isSidebarOpen) {
             this._closeSidebar()
         }
     }
@@ -121,6 +121,7 @@ class SidebarContainer extends React.Component<Props> {
         return (
             <Sidebar
                 {...this.props}
+                isOpen={this.props.isSidebarOpen}
                 showCongratsMessage={
                     this.props.showCongratsMessage && !this.props.isLoading
                 }
@@ -142,7 +143,6 @@ const mapStateToProps: MapStateToProps<
     OwnProps,
     RootState
 > = state => ({
-    isOpen: selectors.isOpen(state),
     isLoading: selectors.isLoading(state),
     // Disable pagination for now
     // needsWaypoint: selectors.needsPagWaypoint(state),

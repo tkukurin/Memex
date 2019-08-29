@@ -450,6 +450,7 @@ class RibbonSidebarContainer extends React.Component<Props, State> {
                     <SidebarContainer
                         env="inpage"
                         annotationsManager={annotationsManager}
+                        isSidebarOpen={isSidebarOpen}
                         goToAnnotation={this._goToAnnotation}
                         closeSidebarCallback={this._closeSidebarCallback}
                         handleAnnotationBoxMouseEnter={makeHighlightMedium}

@@ -4869,6 +4869,11 @@ events@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/events/-/events-2.1.0.tgz#2a9a1e18e6106e0e812aa9ebd4a819b3c29c0ba5"
 
+events@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/events/-/events-3.0.0.tgz#9a0a0dfaf62893d92b875b8f2698ca4114973e88"
+  integrity sha512-Dc381HFWJzEOhQ+d8pkNon++bk9h6cdAoAj4iE6Q4y6xgTzySWXlKn05/TVNpjnfRqi/X0EpJEJohPjNI3zpVA==
+
 eventsource@0.1.6:
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/eventsource/-/eventsource-0.1.6.tgz#0acede849ed7dd1ccc32c811bb11b944d4f29232"
@@ -10620,6 +10625,15 @@ react@^16.4.1:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
 
+react@^16.8.6:
+  version "16.9.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.9.0.tgz#40ba2f9af13bc1a38d75dbf2f4359a5185c4f7aa"
+  integrity sha512-+7LQnFBwkiw+BobzOF6N//BdoNw0ouwmSJTEm9cglOOmsg/TMiFHZLe2sEoN5M7LgJTj9oHH0gxklfnQe66S1w==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.2"
+
 read-pkg-up@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/read-pkg-up/-/read-pkg-up-1.0.1.tgz#9d63c13276c065918d57f002a57f40a1b643fb02"
@@ -11785,7 +11799,7 @@ source-map-support@^0.2.10:
   dependencies:
     source-map "0.1.32"
 
-source-map-support@^0.4.14, source-map-support@^0.4.15:
+source-map-support@^0.4.14, source-map-support@^0.4.15, source-map-support@^0.4.18:
   version "0.4.18"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.4.18.tgz#0286a6de8be42641338594e97ccea75f0a2c585f"
   dependencies:
@@ -12791,6 +12805,23 @@ uglifyjs-webpack-plugin@^1.2.4, uglifyjs-webpack-plugin@^1.2.7:
     uglify-es "^3.3.4"
     webpack-sources "^1.1.0"
     worker-farm "^1.5.2"
+
+ui-logic-core@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/ui-logic-core/-/ui-logic-core-0.1.2.tgz#abf8f9309cb9adab4b3fb4a7fa42dde5350b87b3"
+  integrity sha512-F33khWXi1bcC3zha/0GiobzCp2pMieLtAmP+HioHtVgdcZLXtCbqgWnlyU0/kEiKPY1Ps/5b0p87KXDVJgS8Zw==
+  dependencies:
+    events "^3.0.0"
+    source-map-support "^0.4.18"
+
+ui-logic-react@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/ui-logic-react/-/ui-logic-react-0.1.3.tgz#784654569fce19ab2f4ce345056dd31d2a2418ad"
+  integrity sha512-TQ4W5uW1iFHBWeb4xZFiuIa3d8E67fqSbkJUM1hXO3U4GjiugtUlUbGulIymgL/pTFacpmLgr0640Pkm9FvgJw==
+  dependencies:
+    events "^3.0.0"
+    react "^16.8.6"
+    source-map-support "^0.4.18"
 
 ultron@~1.1.0:
   version "1.1.1"
