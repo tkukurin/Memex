@@ -1,6 +1,5 @@
 import { Page } from '.'
 import { initErrHandler } from './storage'
-import { collections } from './util'
 import { DBGet } from './types'
 import normalizeUrl from '../util/encode-url-for-id'
 import { DexieUtilsPlugin } from './plugins/dexie-utils'
