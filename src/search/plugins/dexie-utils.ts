@@ -1,6 +1,8 @@
 import { StorageBackendPlugin } from '@worldbrain/storex'
 import { DexieStorageBackend } from '@worldbrain/storex-backend-dexie'
 
+import normalizeUrlExt from 'src/util/encode-url-for-id'
+
 export interface RegexpQueryArgs {
     collection: string
     fieldName: string
@@ -24,6 +26,14 @@ export class DexieUtilsPlugin extends StorageBackendPlugin<
     static NUKE_DB_OP = 'memex:dexie.recreateDatabase'
     static REGEXP_COUNT_OP = 'memex:dexie.countByRegexp'
     static REGEXP_DELETE_OP = 'memex:dexie.deleteByRegexp'
+
+    private normalizeUrl: typeof normalizeUrlExt
+
+    constructor({ normalizeUrl }: { normalizeUrl: typeof normalizeUrlExt }) {
+        super()
+
+        this.normalizeUrl = normalizeUrl
+    }
 
     install(backend: DexieStorageBackend) {
         super.install(backend)
@@ -118,12 +128,18 @@ export class DexieUtilsPlugin extends StorageBackendPlugin<
                 operation: 'deleteObjects',
                 where: { pageUrl: { $in: pageUrls } },
             },
-            {
-                collection: 'annotations',
-                operation: 'deleteObjects',
-                where: { pageUrl: { $in: pageUrls } },
-            },
+            // {
+            //     collection: 'annotations',
+            //     operation: 'deleteObjects',
+            //     where: { pageUrl: { $in: pageUrls } },
+            // },
         ])
+
+        await this.backend.dexieInstance
+            .table('annotations')
+            .where('pageUrl')
+            .anyOf(pageUrls.map(url => this.normalizeUrl(url)))
+            .delete()
     }
 
     countByRegexp = (args: RegexpQueryArgs) => this.queryByRegexp(args).count()

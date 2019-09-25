@@ -8,6 +8,7 @@ import { DexieUtilsPlugin } from './dexie-utils'
 import CustomListStorage from 'src/custom-lists/background/storage'
 import BookmarksStorage from 'src/bookmarks/background/storage'
 import AnnotationStorage from 'src/direct-linking/background/storage'
+import normalizeUrl from 'src/util/encode-url-for-id'
 
 describe('Dexie Utils storex plugin', () => {
     async function setupTest() {
@@ -25,7 +26,7 @@ describe('Dexie Utils storex plugin', () => {
 
         await insertTestData(storageManager)
 
-        const plugin = new DexieUtilsPlugin()
+        const plugin = new DexieUtilsPlugin({ normalizeUrl })
         plugin.install(storageManager.backend as any)
 
         return { plugin, storageManager }
