@@ -188,7 +188,6 @@ makeRemotelyCallable(toggleLoggingPause, fetchTab, fetchTabByUrl)
 makeRemotelyCallable(
     search,
     addPageTag,
-    delPageTag,
     suggest,
     extendedSuggest,
     delPages,

@@ -12,7 +12,6 @@ import {
     delPagesByPattern,
     dangerousPleaseBeSureDeleteAndRecreateDatabase,
 } from './del'
-import { addTag, delTag, fetchPageTags } from './tags'
 import { TabManager } from 'src/activity-logger/background'
 import { getPage, grabExistingKeys } from './util'
 import { search, getMatchingPageCount, fullSearch } from './search'
@@ -42,9 +41,6 @@ export function combineSearchIndex(dependenices: {
         addVisit: addVisit(dependenices.getDb),
         addFavIcon: addFavIcon(dependenices.getDb),
         domainHasFavIcon: domainHasFavIcon(dependenices.getDb),
-        addTag: addTag(dependenices.getDb),
-        delTag: delTag(dependenices.getDb),
-        fetchPageTags: fetchPageTags(dependenices.getDb),
         grabExistingKeys: grabExistingKeys(dependenices.getDb),
 
         createPageFromTab: createPageFromTab(dependenices.getDb),

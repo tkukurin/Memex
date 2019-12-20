@@ -185,11 +185,7 @@ class IndexDropdownContainer extends Component<Props, State> {
             return 'delAnnotationTag'
         }
 
-        if (this.props.fromOverview) {
-            return 'delTag'
-        }
-
-        return 'delPageTag'
+        return 'delTag'
     }
 
     /**

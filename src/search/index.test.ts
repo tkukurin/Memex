@@ -3,6 +3,7 @@ import { FavIcon } from './models'
 import { SearchIndex } from './types'
 import { setupBackgroundIntegrationTest } from 'src/tests/background-integration-tests'
 import StorageOperationLogger from 'src/tests/storage-operation-logger'
+import { BackgroundModules } from 'src/background-script/setup'
 
 jest.mock('./models/abstract-model')
 jest.mock('lodash/fp/intersection')
@@ -17,7 +18,7 @@ describe('Search index integration', () => {
         } = await setupBackgroundIntegrationTest()
         const { searchIndex } = backgroundModules.search
 
-        await insertTestData(searchIndex)
+        await insertTestData(searchIndex, backgroundModules)
         return {
             storageManager,
             searchIndex,
@@ -32,7 +33,10 @@ describe('Search index integration', () => {
         }
     }
 
-    async function insertTestData(searchIndex: SearchIndex) {
+    async function insertTestData(
+        searchIndex: SearchIndex,
+        { tags }: BackgroundModules,
+    ) {
         // Insert some test data for all tests to use
         await searchIndex.addPage({
             pageDoc: DATA.PAGE_3,
@@ -49,9 +53,9 @@ describe('Search index integration', () => {
         })
 
         // // Add some test tags
-        await searchIndex.addTag({ url: DATA.PAGE_3.url, tag: 'good' })
-        await searchIndex.addTag({ url: DATA.PAGE_3.url, tag: 'quality' })
-        await searchIndex.addTag({ url: DATA.PAGE_2.url, tag: 'quality' })
+        await tags.addTag({ url: DATA.PAGE_3.url, tag: 'good' })
+        await tags.addTag({ url: DATA.PAGE_3.url, tag: 'quality' })
+        await tags.addTag({ url: DATA.PAGE_2.url, tag: 'quality' })
     }
 
     describe('read ops', () => {
@@ -522,7 +526,7 @@ describe('Search index integration', () => {
         })
 
         test('tag adding affects search', async () => {
-            const { search, searchIndex } = await setupTest()
+            const { search, backgroundModules } = await setupTest()
             const { docs: before } = await search({ tags: ['quality'] })
             expect(before.length).toBe(2)
             expect(before).not.toEqual(
@@ -530,7 +534,10 @@ describe('Search index integration', () => {
             )
 
             // This page doesn't have any tags; 'quality' tag has 2 other pages
-            await searchIndex.addTag({ url: DATA.PAGE_1.url, tag: 'quality' })
+            await backgroundModules.tags.addTag({
+                url: DATA.PAGE_1.url,
+                tag: 'quality',
+            })
 
             const { docs: after } = await search({ tags: ['quality'] })
             expect(after.length).toBe(3)
@@ -540,14 +547,17 @@ describe('Search index integration', () => {
         })
 
         test('tag deleting affects search', async () => {
-            const { search, searchIndex } = await setupTest()
+            const { search, backgroundModules } = await setupTest()
             const { docs: before } = await search({ tags: ['quality'] })
             expect(before.length).toBe(2)
             expect(before).toEqual(
                 expect.arrayContaining([[DATA.PAGE_ID_2, DATA.VISIT_2]]),
             )
 
-            await searchIndex.delTag({ url: DATA.PAGE_2.url, tag: 'quality' })
+            await backgroundModules.tags.delTag({
+                url: DATA.PAGE_2.url,
+                tag: 'quality',
+            })
 
             const { docs: after } = await search({ tags: ['quality'] })
             expect(after.length).toBe(1)

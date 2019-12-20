@@ -74,13 +74,9 @@ export default class SearchBackground {
         this.remoteFunctions = {
             search: {
                 search: this.searchIndex.search,
-                addPageTag: this.searchIndex.addTag,
-                delPageTag: this.searchIndex.delTag,
                 suggest: this.storage.suggest,
                 extendedSuggest: this.storage.suggestExtended,
                 delPages: this.searchIndex.delPages,
-
-                fetchPageTags: this.searchIndex.fetchPageTags,
                 delPagesByDomain: this.searchIndex.delPagesByDomain,
                 delPagesByPattern: this.searchIndex.delPagesByPattern,
                 getMatchingPageCount: this.searchIndex.getMatchingPageCount,

@@ -151,7 +151,7 @@ export function createBackgroundModules(options: {
         tags: new TagsBackground({
             storageManager,
             searchIndex: search.searchIndex,
-            tabMan: activityLogger.tabManager,
+            tabManager: activityLogger.tabManager,
             windows: browser.windows,
         }),
         backupModule: new backup.BackupBackgroundModule({

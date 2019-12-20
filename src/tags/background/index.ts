@@ -3,6 +3,7 @@ import { normalizeUrl } from '@worldbrain/memex-url-utils'
 import { Windows } from 'webextension-polyfill-ts'
 
 import TagStorage from './storage'
+import { createPageViaBmTagActs } from 'src/search/on-demand-indexing'
 import { TabManager } from 'src/activity-logger/background/tab-manager'
 import { makeRemotelyCallable } from 'src/util/webextensionRPC'
 import { SearchIndex } from 'src/search'
@@ -14,49 +15,44 @@ interface Tabs {
 
 export default class TagsBackground {
     storage: TagStorage
-    private tabMan: TabManager
-    private windows: Windows.Static
-    private searchIndex: SearchIndex
 
-    constructor({
-        storageManager,
-        searchIndex,
-        tabMan,
-        windows,
-    }: {
-        storageManager: Storex
-        searchIndex: SearchIndex
-        tabMan?: TabManager
-        windows?: Windows.Static
-    }) {
-        this.storage = new TagStorage({ storageManager })
-        this.tabMan = tabMan
-        this.windows = windows
-        this.searchIndex = searchIndex
+    constructor(
+        private props: {
+            storageManager: Storex
+            searchIndex: SearchIndex
+            tabManager?: TabManager
+            windows?: Windows.Static
+        },
+    ) {
+        this.storage = new TagStorage({ storageManager: props.storageManager })
     }
+
+    private getDb = async () => this.props.storageManager
 
     setupRemoteFunctions() {
         makeRemotelyCallable({
             addTag: this.addTag.bind(this),
             delTag: this.delTag.bind(this),
+            addPageTag: this.addTagForPage.bind(this),
             addTagsToOpenTabs: this.addTagsToOpenTabs.bind(this),
             delTagsFromOpenTabs: this.delTagsFromOpenTabs.bind(this),
+            fetchPageTags: this.fetchPageTags.bind(this),
         })
     }
 
     async addTagsToOpenTabs({ tag, tabs }: { tag: string; tabs?: Tabs[] }) {
         if (!tabs) {
-            const currentWindow = await this.windows.getCurrent()
-            tabs = this.tabMan.getTabUrls(currentWindow.id)
+            const currentWindow = await this.props.windows.getCurrent()
+            tabs = this.props.tabManager.getTabUrls(currentWindow.id)
         }
 
         const time = Date.now()
 
         tabs.forEach(async tab => {
-            let page = await this.searchIndex.getPage(tab.url)
+            let page = await this.props.searchIndex.getPage(tab.url)
 
             if (page == null || page.isStub) {
-                page = await this.searchIndex.createPageFromTab({
+                page = await this.props.searchIndex.createPageFromTab({
                     tabId: tab.tabId,
                     url: tab.url,
                     allowScreenshot: false,
@@ -79,8 +75,8 @@ export default class TagsBackground {
 
     async delTagsFromOpenTabs({ name, tabs }: { name: string; tabs?: Tabs[] }) {
         if (!tabs) {
-            const currentWindow = await this.windows.getCurrent()
-            tabs = this.tabMan.getTabUrls(currentWindow.id)
+            const currentWindow = await this.props.windows.getCurrent()
+            tabs = this.props.tabManager.getTabUrls(currentWindow.id)
         }
 
         return this.storage.delTagsFromOpenTabs({
@@ -91,6 +87,25 @@ export default class TagsBackground {
 
     async fetchPageTags({ url }: { url: string }) {
         return this.storage.fetchPageTags({ url: normalizeUrl(url) })
+    }
+
+    async addTagForPage({
+        tag,
+        url,
+        tabId,
+    }: {
+        tag: string
+        url: string
+        tabId?: number
+    }) {
+        url = normalizeUrl(url)
+
+        const pageExists = await this.storage.checkExistingPage({ url })
+        if (!pageExists) {
+            await createPageViaBmTagActs(this.getDb)({ url, tabId })
+        }
+
+        return this.storage.addTag({ name: tag, url })
     }
 
     async addTag({ tag, url }: { tag: string; url: string }) {
