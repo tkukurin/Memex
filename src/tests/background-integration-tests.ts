@@ -74,8 +74,6 @@ export async function setupBackgroundIntegrationTest(options?: {
             (options.fetchPageProcessor || new MockFetchPageDataProcessor()),
         auth,
     })
-    backgroundModules.customLists._createPage =
-        backgroundModules.search.searchIndex.createTestPage
     backgroundModules.sync.initialSync.wrtc = wrtc
 
     registerBackgroundModuleCollections(storageManager, backgroundModules)

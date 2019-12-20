@@ -6,6 +6,7 @@ import {
     COLLECTION_DEFINITIONS,
     COLLECTION_NAMES,
 } from '@worldbrain/memex-storage/lib/lists/constants'
+import { COLLECTION_NAMES as PAGE_COLL_NAMES } from '@worldbrain/memex-storage/lib/pages/constants'
 
 import { SuggestPlugin } from 'src/search/plugins'
 import { PageList, PageListEntry } from './types'
@@ -110,6 +111,11 @@ export default class CustomListStorage extends StorageModule {
                     query: '$query:string',
                     options: '$options:any',
                 },
+            },
+            findPage: {
+                collection: PAGE_COLL_NAMES.page,
+                operation: 'findObject',
+                args: { url: '$url:pk' },
             },
         },
     })
@@ -314,5 +320,11 @@ export default class CustomListStorage extends StorageModule {
 
     async fetchListIgnoreCase({ name }: { name: string }) {
         return this.operation('findListByName', { name })
+    }
+
+    async checkExistingPage({ url }: { url: string }): Promise<boolean> {
+        const page = await this.operation('findPage', { url })
+
+        return page != null
     }
 }

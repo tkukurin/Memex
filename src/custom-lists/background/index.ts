@@ -3,44 +3,28 @@ import { Windows } from 'webextension-polyfill-ts'
 import { normalizeUrl } from '@worldbrain/memex-url-utils'
 
 import { makeRemotelyCallable } from 'src/util/webextensionRPC'
+import { createPageViaBmTagActs } from 'src/search/on-demand-indexing'
 import CustomListStorage from './storage'
 import internalAnalytics from '../../analytics/internal'
 import { EVENT_NAMES } from '../../analytics/internal/constants'
 import { TabManager } from 'src/activity-logger/background/tab-manager'
-import { Page, SearchIndex } from 'src/search'
 import { Tab, CustomListsInterface } from './types'
 
 export default class CustomListBackground {
     storage: CustomListStorage
-    _createPage: SearchIndex['createPageViaBmTagActs'] // public so tests can override as a hack
     public remoteFunctions: CustomListsInterface
-    private tabMan: TabManager
-    private windows: Windows.Static
-    private getPage: (url: string) => Promise<Page>
-    private searchIndex: SearchIndex
 
-    constructor({
-        storageManager,
-        tabMan,
-        windows,
-        createPage,
-        getPage,
-        searchIndex,
-    }: {
-        storageManager: Storex
-        tabMan?: TabManager
-        windows?: Windows.Static
-        getPage?: (url: string) => Promise<Page>
-        createPage?: SearchIndex['createPageViaBmTagActs']
-        searchIndex: SearchIndex
-    }) {
+    constructor(
+        private props: {
+            storageManager: Storex
+            tabMan?: TabManager
+            windows?: Windows.Static
+        },
+    ) {
         // Makes the custom list Table in indexed DB.
-        this.storage = new CustomListStorage({ storageManager })
-        this.tabMan = tabMan
-        this.searchIndex = searchIndex
-        this.windows = windows
-        this.getPage = getPage || searchIndex.getPage
-        this._createPage = createPage || searchIndex.createPageViaBmTagActs
+        this.storage = new CustomListStorage({
+            storageManager: props.storageManager,
+        })
 
         this.remoteFunctions = {
             createCustomList: this.createCustomList.bind(this),
@@ -58,6 +42,8 @@ export default class CustomListBackground {
             removeOpenTabsFromList: this.removeOpenTabsFromList.bind(this),
         }
     }
+
+    private getDb = async () => this.props.storageManager
 
     setupRemoteFunctions() {
         makeRemotelyCallable(this.remoteFunctions)
@@ -144,28 +130,22 @@ export default class CustomListBackground {
         })
     }
 
-    private async createPageIfNeeded({ url }: { url: string }) {
-        let page = await this.getPage(url)
-
-        if (!page) {
-            page = await this._createPage({ url })
-            page.addVisit()
-        }
-
-        return page.save()
-    }
-
     async insertPageToList({ id, url }: { id: number; url: string }) {
         internalAnalytics.processEvent({
             type: EVENT_NAMES.INSERT_PAGE_COLLECTION,
         })
+        const fullUrl = url
+        url = normalizeUrl(url)
 
-        await this.createPageIfNeeded({ url })
+        const pageExists = await this.storage.checkExistingPage({ url })
+        if (!pageExists) {
+            await createPageViaBmTagActs(this.getDb)({ url })
+        }
 
         return this.storage.insertPageToList({
             listId: id,
-            pageUrl: normalizeUrl(url),
-            fullUrl: url,
+            pageUrl: url,
+            fullUrl,
         })
     }
 
@@ -217,40 +197,27 @@ export default class CustomListBackground {
         tabs?: Array<Tab>
     }) {
         if (!tabs) {
-            const currentWindow = await this.windows.getCurrent()
-            tabs = this.tabMan.getTabUrls(currentWindow.id)
+            const currentWindow = await this.props.windows.getCurrent()
+            tabs = this.props.tabMan.getTabUrls(currentWindow.id)
         }
 
-        const time = Date.now()
+        for (const tab of tabs) {
+            const url = normalizeUrl(tab.url)
 
-        tabs.forEach(async tab => {
-            let page = await this.searchIndex.getPage(tab.url)
-
-            if (page == null || page.isStub) {
-                page = await this._createPage({
+            const pageExists = await this.storage.checkExistingPage({ url })
+            if (!pageExists) {
+                await createPageViaBmTagActs(this.getDb)({
+                    url,
                     tabId: tab.tabId,
-                    url: tab.url,
-                    allowScreenshot: false,
                 })
             }
 
-            // Add new visit if none, else page won't appear in results
-            if (!page.visits.length) {
-                page.addVisit(time)
-            }
-
-            await page.save()
-        })
-
-        await Promise.all(
-            tabs.map(tab => {
-                this.storage.insertPageToList({
-                    listId,
-                    fullUrl: tab.url,
-                    pageUrl: normalizeUrl(tab.url),
-                })
-            }),
-        )
+            await this.storage.insertPageToList({
+                listId,
+                fullUrl: tab.url,
+                pageUrl: url,
+            })
+        }
     }
 
     async removeOpenTabsFromList({
@@ -261,8 +228,8 @@ export default class CustomListBackground {
         tabs?: Array<Tab>
     }) {
         if (!tabs) {
-            const currentWindow = await this.windows.getCurrent()
-            tabs = this.tabMan.getTabUrls(currentWindow.id)
+            const currentWindow = await this.props.windows.getCurrent()
+            tabs = this.props.tabMan.getTabUrls(currentWindow.id)
         }
 
         await Promise.all(

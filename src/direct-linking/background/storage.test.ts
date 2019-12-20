@@ -69,7 +69,6 @@ describe('Annotations storage', () => {
         })
         customListsBg = new CustomListBackground({
             storageManager,
-            searchIndex: {} as any,
         })
         annotationStorage = annotBg.annotationStorage
 

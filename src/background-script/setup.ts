@@ -146,7 +146,6 @@ export function createBackgroundModules(options: {
             storageManager,
             tabMan: activityLogger.tabManager,
             windows: browser.windows,
-            searchIndex: search.searchIndex,
         }),
         tags: new TagsBackground({
             storageManager,
