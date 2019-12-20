@@ -1,6 +1,7 @@
 import { Runtime, WebNavigation, Tabs, Browser } from 'webextension-polyfill-ts'
 
 import { makeRemotelyCallable } from 'src/util/webextensionRPC'
+import BookmarksBackground from 'src/bookmarks/background'
 import { mapChunks } from 'src/util/chunk'
 import initPauser from './pause-logging'
 import { updateVisitInteractionData } from './util'
@@ -32,6 +33,7 @@ export default class ActivityLoggerBackground {
     constructor(options: {
         tabManager: TabManager
         searchIndex: SearchIndex
+        bookmarks: BookmarksBackground
         browserAPIs: Pick<
             Browser,
             'tabs' | 'runtime' | 'webNavigation' | 'storage'
@@ -52,6 +54,7 @@ export default class ActivityLoggerBackground {
             searchIndex: options.searchIndex,
             pageVisitLogger: this.pageVisitLogger,
             browserAPIs: options.browserAPIs,
+            bookmarks: options.bookmarks,
         })
     }
 

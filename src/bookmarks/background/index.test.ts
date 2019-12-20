@@ -107,6 +107,15 @@ export const INTEGRATION_TESTS = backgroundIntegrationTestSuite('Bookmarks', [
                         expectedStorageOperations: () => [
                             (expect as any).objectContaining({
                                 operation: [
+                                    'findObject',
+                                    'pages',
+                                    {
+                                        url: DATA.PAGE_1.url,
+                                    },
+                                ],
+                            }),
+                            (expect as any).objectContaining({
+                                operation: [
                                     'createObject',
                                     'bookmarks',
                                     {

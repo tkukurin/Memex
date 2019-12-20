@@ -12,7 +12,6 @@ import {
     delPagesByPattern,
     dangerousPleaseBeSureDeleteAndRecreateDatabase,
 } from './del'
-import { addBookmark, delBookmark, pageHasBookmark } from './bookmarks'
 import { addTag, delTag, fetchPageTags } from './tags'
 import { TabManager } from 'src/activity-logger/background'
 import { getPage, grabExistingKeys } from './util'
@@ -39,9 +38,6 @@ export function combineSearchIndex(dependenices: {
         delPages: delPages(dependenices.getDb),
         delPagesByDomain: delPagesByDomain(dependenices.getDb),
         delPagesByPattern: delPagesByPattern(dependenices.getDb),
-        addBookmark: addBookmark(dependenices.getDb, dependenices.tabManager),
-        delBookmark: delBookmark(dependenices.getDb, dependenices.tabManager),
-        pageHasBookmark: pageHasBookmark(dependenices.getDb),
         updateTimestampMeta: updateTimestampMeta(dependenices.getDb),
         addVisit: addVisit(dependenices.getDb),
         addFavIcon: addFavIcon(dependenices.getDb),

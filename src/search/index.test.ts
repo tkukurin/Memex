@@ -21,6 +21,7 @@ describe('Search index integration', () => {
         return {
             storageManager,
             searchIndex,
+            backgroundModules,
             search: (params = {}) =>
                 searchIndex.search({
                     mapResultsFunc: db => res => {
@@ -556,7 +557,7 @@ describe('Search index integration', () => {
         })
 
         test('bookmark adding affects search', async () => {
-            const { search, searchIndex } = await setupTest()
+            const { search, backgroundModules } = await setupTest()
             const tmpBm = Date.now()
             const { docs: before } = await search({ showOnlyBookmarks: true })
 
@@ -567,10 +568,10 @@ describe('Search index integration', () => {
             ) // Base test data expectation
 
             // Add bm to 3rd test page
-            await searchIndex.addBookmark({
+            await backgroundModules.bookmarks.addBookmark({
                 url: DATA.PAGE_1.url,
-                timestamp: tmpBm,
-            } as any)
+                time: tmpBm,
+            })
             const { docs } = await search({ showOnlyBookmarks: true })
 
             expect(docs.length).toBe(2)
@@ -581,7 +582,7 @@ describe('Search index integration', () => {
         })
 
         test('bookmark deleting affects search', async () => {
-            const { search, searchIndex } = await setupTest()
+            const { search, backgroundModules } = await setupTest()
             const { docs: before } = await search({ showOnlyBookmarks: true })
 
             // We only have a single bookmark
@@ -589,7 +590,9 @@ describe('Search index integration', () => {
             expect(before[0]).toEqual([DATA.PAGE_ID_2, DATA.BOOKMARK_1])
 
             // Add bm to 3rd test page
-            await searchIndex.delBookmark({ url: DATA.PAGE_2.url })
+            await backgroundModules.bookmarks.delBookmark({
+                url: DATA.PAGE_2.url,
+            })
 
             const { docs: after } = await search({ showOnlyBookmarks: true })
             expect(after.length).toBe(0) // Bye

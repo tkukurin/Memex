@@ -75,11 +75,15 @@ export function createBackgroundModules(options: {
 }): BackgroundModules {
     const { storageManager } = options
     const tabManager = options.tabManager || new TabManager()
+    const bookmarks = new BookmarksBackground({
+        storageManager,
+        browserAPIs: options.browserAPIs,
+        tabManager,
+    })
 
     const search = new SearchBackground({
         storageManager,
         tabMan: tabManager,
-        browserAPIs: options.browserAPIs,
     })
 
     const notifications = new NotificationBackground({ storageManager })
@@ -88,6 +92,7 @@ export function createBackgroundModules(options: {
         searchIndex: search.searchIndex,
         browserAPIs: options.browserAPIs,
         tabManager,
+        bookmarks,
     })
     const bgScript = new BackgroundScript({
         storageManager,
@@ -124,8 +129,9 @@ export function createBackgroundModules(options: {
 
     return {
         auth,
-        notifications,
         social,
+        bookmarks,
+        notifications,
         activityLogger,
         connectivityChecker,
         directLinking: new DirectLinkingBackground({
@@ -148,7 +154,6 @@ export function createBackgroundModules(options: {
             tabMan: activityLogger.tabManager,
             windows: browser.windows,
         }),
-        bookmarks: new BookmarksBackground({ storageManager }),
         backupModule: new backup.BackupBackgroundModule({
             storageManager,
             searchIndex: search.searchIndex,
@@ -226,6 +231,7 @@ export function getBackgroundStorageModules(
         tags: backgroundModules.tags.storage,
         clientSyncLog: backgroundModules.sync.clientSyncLog,
         syncInfo: backgroundModules.sync.syncInfoStorage,
+        pageFetchBacklog: backgroundModules.pageFetchBacklog.storage,
     }
 }
 

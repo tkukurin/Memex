@@ -39,6 +39,16 @@ export default class BookmarksStorage extends StorageModule {
                 operation: 'deleteObjects',
                 args: { url: '$url:pk' },
             },
+            findBookmark: {
+                collection: this.bookmarksColl,
+                operation: 'findObject',
+                args: { url: '$url:pk' },
+            },
+            findPage: {
+                collection: COLLECTION_NAMES.page,
+                operation: 'findObject',
+                args: { url: '$url:pk' },
+            },
         },
     })
 
@@ -54,5 +64,17 @@ export default class BookmarksStorage extends StorageModule {
 
     async delBookmark({ url }: { url: string }) {
         return this.operation('deleteBookmark', { url })
+    }
+
+    async checkExistingPage({ url }: { url: string }): Promise<boolean> {
+        const page = await this.operation('findPage', { url })
+
+        return page != null
+    }
+
+    async checkBookmarkExists({ url }: { url: string }): Promise<boolean> {
+        const bookmark = await this.operation('findBookmark', { url })
+
+        return bookmark != null
     }
 }

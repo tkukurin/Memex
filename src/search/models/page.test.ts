@@ -9,7 +9,16 @@ import * as DATA from './page.test.data'
 
 async function setupTest() {
     const storageManager = initStorageManager()
-    const bmBackground = new BookmarksBackground({ storageManager })
+    const fakeEvent = { addListener: () => undefined }
+    const bmBackground = new BookmarksBackground({
+        storageManager,
+        browserAPIs: {
+            bookmarks: {
+                onCreated: fakeEvent,
+                onRemoved: fakeEvent,
+            },
+        },
+    } as any)
 
     registerModuleMapCollections(storageManager.registry, {
         bookmarks: bmBackground.storage,

@@ -81,10 +81,10 @@ export async function main() {
         notifications: { createNotification },
         bookmarks: {
             addPageBookmark:
-                backgroundModules.search.remoteFunctions.bookmarks
+                backgroundModules.bookmarks.remoteFunctions.bookmarks
                     .addPageBookmark,
             delPageBookmark:
-                backgroundModules.search.remoteFunctions.bookmarks
+                backgroundModules.bookmarks.remoteFunctions.bookmarks
                     .delPageBookmark,
         },
         sync: backgroundModules.sync.remoteFunctions,

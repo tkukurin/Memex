@@ -544,7 +544,11 @@ function extensionSyncTests(suiteOptions: {
             devices[1].storageManager,
         )
         expect(receiverStorageContents.pages.length).toBe(1)
-        expect(receiverStorageContents.pages[0]).toEqual(mockPage)
+        expect(receiverStorageContents.pages[0]).toEqual({
+            ...mockPage,
+            _fullTitle_terms: ['test'],
+            _text_terms: ['test'],
+        })
     })
 
     it('should merge data if do an initial sync to a device which already has some data', async (setup: TestSetup) => {
@@ -964,9 +968,9 @@ function mobileSyncTests(suiteOptions: {
                     lastObjectCollection === 'bookmarks' &&
                     params.collection !== lastObjectCollection
                 ) {
-                    await devices.extension.backgroundModules.bookmarks.addBookmark(
+                    await devices.extension.backgroundModules.bookmarks.storage.addBookmark(
                         {
-                            url: 'http://toolate.com/',
+                            url: 'toolate.com',
                             time: new Date('2019-10-10').getTime(),
                         },
                     )

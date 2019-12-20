@@ -100,18 +100,16 @@ export interface PipelineRes {
 }
 
 export interface SearchIndex {
-    search: (
-        params: {
-            query: string
-            showOnlyBookmarks: boolean
-            mapResultsFunc?: any
-            domains?: string[]
-            domainsExclude?: string[]
-            tags?: any[]
-            lists?: any[]
-            [key: string]: any
-        },
-    ) => Promise<{
+    search: (params: {
+        query: string
+        showOnlyBookmarks: boolean
+        mapResultsFunc?: any
+        domains?: string[]
+        domainsExclude?: string[]
+        tags?: any[]
+        lists?: any[]
+        [key: string]: any
+    }) => Promise<{
         docs: any[]
         isBadTerm?: boolean
         requiresMigration?: boolean
@@ -133,16 +131,6 @@ export interface SearchIndex {
     delPagesByDomain: (url: string) => Promise<any>
     delPagesByPattern: (pattern: string | RegExp) => Promise<any>
 
-    addBookmark: (
-        params: {
-            url: string
-            timestamp?: number
-            tabId?: number
-        },
-    ) => Promise<void>
-    delBookmark: (params: Partial<Bookmarks.BookmarkTreeNode>) => Promise<void>
-    pageHasBookmark: (url: string) => Promise<boolean>
-
     updateTimestampMeta: (
         url: string,
         time: number,
@@ -153,12 +141,16 @@ export interface SearchIndex {
     addFavIcon: (url: string, favIconURI: string) => Promise<any>
     domainHasFavIcon: (url: string) => Promise<boolean>
 
-    addTag: (
-        params: { url: string; tag: string; tabId?: number },
-    ) => Promise<void>
-    delTag: (
-        params: { url: string; tag: string; tabId?: number },
-    ) => Promise<void>
+    addTag: (params: {
+        url: string
+        tag: string
+        tabId?: number
+    }) => Promise<void>
+    delTag: (params: {
+        url: string
+        tag: string
+        tabId?: number
+    }) => Promise<void>
     fetchPageTags: (url: string) => Promise<any>
 
     grabExistingKeys: () => Promise<{

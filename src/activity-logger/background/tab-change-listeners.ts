@@ -1,6 +1,7 @@
 import { browser, Storage, Tabs, Browser } from 'webextension-polyfill-ts'
 import throttle from 'lodash/throttle'
 
+import BookmarksBackground from 'src/bookmarks/background'
 import {
     TabEventChecker,
     whenPageDOMLoaded,
@@ -19,8 +20,6 @@ import {
     LoggableTabChecker,
     VisitInteractionUpdater,
     FavIconFetcher,
-    FavIconChecker,
-    FavIconCreator,
     BookmarkChecker,
     TabIndexer,
 } from './types'
@@ -68,6 +67,7 @@ export default class TabChangeListeners {
         pageVisitLogger: PageVisitLogger
         browserAPIs: Pick<Browser, 'storage'>
         searchIndex: SearchIndex
+        bookmarks: BookmarksBackground
         storageArea?: Storage.StorageArea
         favIconFetch?: FavIconFetcher
         domLoadCheck?: TabEventChecker
@@ -87,7 +87,8 @@ export default class TabChangeListeners {
         this._contentScriptPaths =
             options.contentScriptPaths || TabChangeListeners.DEF_CONTENT_SCRIPTS
 
-        this.checkBookmark = options.searchIndex.pageHasBookmark
+        this.checkBookmark = (url: string) =>
+            options.bookmarks.checkPageHasBookmark({ url })
     }
 
     private getOrCreateTabIndexers(tabId: number) {
